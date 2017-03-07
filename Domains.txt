@@ -1,0 +1,1 @@
+Sequence: 5ht1b_humanDomain_1: 36 - 58Domain_2: 67-70,71,72Domain_3: 107 - 129Domain_4: 150 - 169Domain_5: 201 - 223Domain_6: 275 - 297#add domains from website to file if file is empty#name is TMHMM_1 and _2 and etc#get domains from online#if additional domains are written run them as well 

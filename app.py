@@ -153,6 +153,9 @@ def join(template, model):
      i in xrange(0, len(mod), 5)) for x in y]
 	print tem, "\n", "\n", mod
 	return mod, tem
+
+
+
 if __name__ == "__main__":
 	template_data = "<p>"
 	model_data = ""
