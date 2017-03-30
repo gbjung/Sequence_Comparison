@@ -4,34 +4,9 @@ from collections import OrderedDict
 import sys
 import re
 from seleniumscript import TMHMM
+from pprint import pprint
 
-start = 18
-TM1 = [25,35]
-custom_domain = [21,22,25,27,30,31,32,33,44,56]
-super_custom_domain = [21,22,[25,35],33,[44,56]]
-
-stuff = (">5ht1b_human\n"+
-"-------------------------------------------------------------------MEEPGAQCAPPPPAGSETWVPQANLSSAPSQNCSAKDYIYQDSIS-------LPWKVLLVMLLAL-ITLATTLSNAFVIATVYRT------RKLH------TPANYLIASLAVTDLLVSILVMPISTMYTVT-G----RW-TL-----GQVVCDFWLSSDITCCTASILHLCVIALDRYWAITDAVEYSAKR--T-PKRAAVMIALVWVFSISISLPPFFW------RQAKAEEEVSE-------------CVV------NTD------HILYTV-YSTVGAFYFPTLLLIALYGRIYVEARSRILKQTP--NRTGKRLTRAQLITDSPGSTSSVTSINSR---------------------------------------------------------------------------------------------------------------------------------------------------------VPDVPSESGSPVYVNQVKVRVSDALLEKK----KLMAARERKATKTLGIILGAFIV-CWLPFFIISLVMPI-----CKDA-CWF-------HLAIFDFFTWLGYLNSLINPIIYTMSNEDFKQAFHKLI-----------RFKCTS-----------------------------------------------------------------------------------------------------------------------")
-
-
-YAY = (
-"C-P--KAGRHNY--IFVMIPTLYSIIFVVGIFGNSLVVIV---IYFY"+  
-"M-KLKTVASVFLLNLALADLCFLL-TLPLWAVYTA-MEYRWPFGNYLCKIA"+
-"SASVSFNLYASVFLLTCLSIDRYLAIVHPMKS-----RLRRTMLVAKVTC"+
-"IIIWLLAGLA-SLPAIIHRNVFFI/----------ITVCAF---HYE/TLPI"+
-"GLGLTKNILGFLFPFLIILTSYTLIWKA-------LKK/-------------"+
-"NDDIFKIIMAIVLFFFFSWIPHQIFTFLDVLIQLG------IIRDCRIAD"+
-"IVDTAMPITICIAYFNNCLNPLFYG--FLGKKFKRYFLQLL--------")
-
-B2 = (
-"DVTQERDE-V-WV-VGMGIVMSLIVLAIVFGNVLVITAIAK---F"+
-"ERLQTVTNYFITSLACADLVMGLAVVPFGAAHILM--KMWTFGNFWCEFW"+
-"TSIDVLCVTASIETLCVIAVDRYFAITSPFKYQSLLT-----KNKARVII"+
-"LMVWIVSGLTSFLPIQM-HWYRAT-HQEAINCYANETCCDFFTN-------Q"+
-"AYAIASSIVSFYVPLVIMVFVYSRVFQEAKRQLQK----IDKSEGR/KFCLK"+
-"EHKALKTLGIIMGTFTLCWLPFFIVNIVHVI----QDNLIR---------"+
-"--KEVYILLNWIGYVNSGFNPLIYCRS---PDFRIAFQELLCLRRSSLK")
-
+start = 0
 
 def openDomains(file, fasta):
   '''
@@ -46,7 +21,7 @@ def openDomains(file, fasta):
   '''
   od = ordered_dict() 
   alignments = []
-  template = {} 
+  template = [] 
   sequence = "" #the template specified from the Domains.txt
   with open(file, 'rU') as f:
     for line in f:
@@ -70,11 +45,11 @@ def openDomains(file, fasta):
     with open("GPCRdb_alignment.fasta", 'rU') as f:
       read = f.readlines()
       for line in range(len(read)):
-        if "5ht1b_human" in read[line]:
-          template[read[line]] = read[line+1][::-1]
+        if sequence in read[line]:
+          template = [read[line], read[line+1][::-1]]
+          alignments.append([read[line][1:-1],read[line+1][1:-1]])
         elif ">" in read[line]:
           alignments.append([read[line][1:-1],read[line+1][1:-1]])
-
     return od, alignments, template
 
 
@@ -97,10 +72,7 @@ def ungapped(gapped_template, gapped_model, domain):
       gapped_template, gapped_model, domain, tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch)
 
     percentage = round(float(match)/float(len(tem)-gaps_accounted)*100, 2)
-    # print("Ungapped: Now properly accounts for gaps in the front of the domain and in the domain") 
   else:
-    # print("Custom Domain: Alignment with a domain of custom points")
-    # print("Custom Domain: {}".format(domain))
     for num in domain:
       if isinstance(num,list):
         tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch, new_gaps_accounted = main_algorithm(
@@ -108,33 +80,20 @@ def ungapped(gapped_template, gapped_model, domain):
         gaps_accounted += new_gaps_accounted
       else:
         tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch = spot_alogrithm(num, gapped_template, gapped_model, tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch)
+  
+  print match
+  print len(tem)
+  print gaps_accounted
 
-    percentage = round(float(match)/float(len(tem)-gaps_accounted)*100, 2)
+  percentage = round(float(match)/float(len(tem)-gaps_accounted)*100, 2)
+  data = ["Match Percentage: {}".format(percentage),
+          "Template: {}".format("".join(tem)), "Model: {}".format("".join(mod))]
+          # "Template P Count: {}".format(pcount), "Template G Count: {}".format(gcount),
+          # "Model P Count: {}".format(bottom_pcount), "Model G Count: {}".format(bottom_gcount),
+          # "Template P Nonmatch: {}".format(pcount - pmatch), "Template G Nonmatch: {}".format(gcount - gmatch), 
+          # "Model P Nonmatch: {}".format(bottom_pcount - pmatch), "Model G Nonmatch: {}".format(bottom_gcount - gmatch), 
+          # ]
 
-  # print("------------------")   
-  # print("4YAY : "+"".join(tem))
-  # print("BETA2: "+"".join(mod)+"\n")
-  # print("First Sequence P Count: {}".format(pcount))
-  # print("First Sequence G Count: {}".format(gcount))
-  # print("Second Sequence P Count: {}".format(bottom_pcount))
-  # print("Second Sequence G Count: {}".format(bottom_gcount))
-  # print("P Match: {}".format(pmatch))
-  # print("G Match: {}\n".format(gmatch))
-  data = OrderedDict()
-  data["type"] = "ungapped"
-  data["tem"] = "".join(tem)
-  data["mod"] = "".join(mod)
-  data["pcount"] = pcount
-  data["gcount"] = gcount
-  data["nonmatchTopP"] = pcount - pmatch
-  data["nonmatchTopG"] = gcount - gmatch
-  data["bottom_pcount"] = bottom_pcount
-  data["bottom_gcount"] = bottom_gcount
-  data["nonmatchBotP"] = bottom_pcount - pmatch
-  data["nonmatchBotG"] = bottom_pcount - gmatch
-  data["pmatch"] = pmatch
-  data["gmatch"] = gmatch
-  data["percentage"] = percentage
   return data
 
 def gapped(template, model, domain):
@@ -152,10 +111,7 @@ def gapped(template, model, domain):
       template, model, domain, tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch)
 
     percentage = round(float(match)/float(len(tem)-gaps_accounted)*100, 2)
-    # print("Ungapped: Now properly accounts for gaps in the front of the domain and in the domain") 
   else:
-    # print("Custom Domain: Alignment with a domain of custom points")
-    # print("Custom Domain: {}".format(domain))
     for num in domain:
       if isinstance(num,list):
         tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch, new_gaps_accounted = main_algorithm(
@@ -165,31 +121,13 @@ def gapped(template, model, domain):
         tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch = spot_alogrithm(num, template, model, tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch)
   
   percentage = round(float(match)/float(len(tem))*100, 2)
-  # print("Gapped: Aligned gaps aren't matches. Matches divided by domain length including gaps")
-  # print("------------------")      
-  # print("4YAY : "+"".join(tem))
-  # print("BETA2: "+"".join(mod)+"\n")
-  # print("First Sequence P Count: {}".format(pcount))
-  # print("First Sequence G Count: {}".format(gcount))
-  # print("Second Sequence P Count: {}".format(bottom_pcount))
-  # print("Second Sequence G Count: {}".format(bottom_gcount))
-  # print("P Match: {}".format(pmatch))
-  # print("G Match: {}\n".format(gmatch))
-  data = OrderedDict()
-  data["type"] = "gapped"
-  data["tem"] = "".join(tem)
-  data["mod"] = "".join(mod)
-  data["pcount"] = pcount
-  data["gcount"] = gcount
-  data["nonmatchTopP"] = pcount - pmatch
-  data["nonmatchTopG"] = gcount - gmatch
-  data["bottom_pcount"] = bottom_pcount
-  data["bottom_gcount"] = bottom_gcount
-  data["nonmatchBotP"] = bottom_pcount - pmatch
-  data["nonmatchBotG"] = bottom_pcount - gmatch
-  data["pmatch"] = pmatch
-  data["gmatch"] = gmatch
-  data["percentage"] = percentage
+  data = ["Match Percentage: {}".format(percentage),
+          "P Match: {}".format(pmatch), "G Match: {}".format(gmatch),
+          "Template P Count: {}".format(pcount), "Template G Count: {}".format(gcount),
+          "Model P Count: {}".format(bottom_pcount), "Model G Count: {}".format(bottom_gcount),
+          "Template P Nonmatch: {}".format(pcount - pmatch), "Template G Nonmatch: {}".format(gcount - gmatch), 
+          "Model P Nonmatch: {}".format(bottom_pcount - pmatch), "Model G Nonmatch: {}".format(bottom_gcount - gmatch), 
+          ]
 
   return data
 
@@ -203,6 +141,7 @@ def checkgaps(template, domain, gaps, start):
 
 #checks to see how many previous chars were gaps and properly accounts for them
 def gapinsurance(template, domain, gaps, start):
+  print gaps
   new_gaps = template[0:domain[0] - start + gaps].count("-")
   if new_gaps > gaps:
     gaps = new_gaps
@@ -257,8 +196,6 @@ def main_algorithm(gapped_template, gapped_model, domain, tem, mod,
         if model[num - start] == 'G':
           bottom_gcount += 1
     else:
-        # tem.append("("+template[num - start]+")")
-        # mod.append("("+model[num - start]+")")
         tem.append(template[num - start])
         mod.append(model[num - start])
   return tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch, gaps_accounted
@@ -296,11 +233,6 @@ def spot_alogrithm(num, gapped_template, gapped_model, tem, mod,
       bottom_gcount += 1
   return tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch
 
-def export_to_csv(data):
-  with open('output.csv', 'wb') as myfile:
-    wr = csv.DictWriter(myfile, delimiter='\t', fieldnames=data)
-    wr.writeheader()
-
 class ordered_dict(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
@@ -323,21 +255,38 @@ class ordered_dict(dict):
         return [(key,self[key]) for key in self._order]
 
 
-os.system('clear')
-match_ungapped = ungapped(YAY, B2, TM1)
-match_gapped = gapped(YAY, B2, TM1)
-custom_ungapped = ungapped(YAY,B2, custom_domain)
-super_custom_ungapped = ungapped(YAY,B2, super_custom_domain)
+def loopthroughdomains(domains, template, model):
+  '''
+  args:
+    domains: dict of domains
+    template: the template sequence from the fasta file from the Domain.txt specified
+    model: the model sequence to compare the template to
+  returns:
+    
+  '''
+  master = [model[0]]
+  for item in domains:
+    master.extend([item, "Range: {}".format(domains[item])]+ungapped(template[1].strip('\n'), model[1], domains[item]))
+  return master
 
-a = TMHMM(stuff)
+def exportCSV(data):
+  with open('output.csv', 'wb') as output:
+    writer = csv.writer(output)
+    writer.writerows(data)
 
-custom_domains, alignments, template = openDomains(sys.argv[1], sys.argv[2])
-#export_to_csv(match_gapped)
-print alignments
-for domain in custom_domains:
-  try:
-    print domain[1]
-    print ungapped(template, alignments[1][1], domain[1])
-    print "\n"
-  except IndexError:
-    print("Out of range")
+def main(textfile, fastafile):
+  os.system('clear')
+  custom_domains, alignments, template = openDomains(textfile, fastafile)
+  #online_domains = TMHMM("".join(template)).domains
+  total_data = []
+  print template
+  print alignments[0]
+  total_data.append(loopthroughdomains(custom_domains, alignments[0], alignments[0]))
+  print total_data
+  # for alignment in alignments:
+  #   total_data.append(loopthroughdomains(custom_domains, template, alignment))
+  #print total_data
+  exportCSV(total_data)
+
+main(sys.argv[1], sys.argv[2])
+

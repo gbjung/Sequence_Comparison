@@ -5,10 +5,17 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from collections import OrderedDict
 import os
 import subprocess
 
 class TMHMM:
+	'''
+	args:
+		sequence: Selected Sequence in FASTA format
+	returns:
+		domains: Dict of domains retrieved from the cbs site
+	'''
 	def __init__(self, sequence):
 		self.path = subprocess.Popen('pwd', stdout=subprocess.PIPE).communicate()[0].strip()
 		self.chromedriver = self.path+"/chromedriver"
@@ -32,13 +39,15 @@ class TMHMM:
 		return domains
 
 	def cleanDomains(self, domains):
-		clean_domains = {}
+		clean_domains = OrderedDict()
 		dms = [x.encode('ascii','ignore') for x in domains.split("\n")]
 		dms = [" ".join(x.split()) for x in dms]
+		counter = 1
 		for domain in range(len(dms)):
-			if "#" in dms[domain]:
-				continue
-			else:
+			if "TMhelix" in dms[domain]:
 				dms[domain] = dms[domain].split(" ")
-				clean_domains["Domain_{}".format(domain-5)] = [int(dms[domain][-1]), int(dms[domain][-2])]
+				clean_domains["TMHMM_{}".format(counter)] = [int(dms[domain][-2]), int(dms[domain][-1])]
+				counter += 1
+			else:
+				pass
 		return clean_domains
