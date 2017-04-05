@@ -47,7 +47,7 @@ def openDomains(file, fasta):
       for line in range(len(read)):
         if sequence in read[line]:
           template = [read[line], read[line+1][::-1]]
-          alignments.append([read[line][1:-1],read[line+1][1:-1]])
+          # alignments.append([read[line][1:-1],read[line+1][1:-1]])
         elif ">" in read[line]:
           alignments.append([read[line][1:-1],read[line+1][1:-1]])
     return od, alignments, template
@@ -121,13 +121,9 @@ def gapped(template, model, domain):
         tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch = spot_alogrithm(num, template, model, tem, mod, match, pcount, gcount, bottom_gcount, bottom_pcount, gmatch, pmatch)
   
   percentage = round(float(match)/float(len(tem))*100, 2)
-  data = ["Match Percentage: {}".format(percentage),
-          "P Match: {}".format(pmatch), "G Match: {}".format(gmatch),
-          "Template P Count: {}".format(pcount), "Template G Count: {}".format(gcount),
-          "Model P Count: {}".format(bottom_pcount), "Model G Count: {}".format(bottom_gcount),
-          "Template P Nonmatch: {}".format(pcount - pmatch), "Template G Nonmatch: {}".format(gcount - gmatch), 
-          "Model P Nonmatch: {}".format(bottom_pcount - pmatch), "Model G Nonmatch: {}".format(bottom_gcount - gmatch), 
-          ]
+  data = [percentage, pmatch, gmatch, pcount, gcount,
+          bottom_pcount, bottom_gcount, pcount - pmatch,
+          gcount - gmatch, bottom_pcount - pmatch, bottom_gcount - gmatch]
 
   return data
 
@@ -266,7 +262,7 @@ def loopthroughdomains(domains, template, model):
   '''
   master = [model[0]]
   for item in domains:
-    master.extend([item, "Range: {}".format(domains[item])]+ungapped(template[1].strip('\n'), model[1], domains[item]))
+    master.extend(["Range: {}".format(domains[item])]+gapped(template[1].strip('\n'), model[1], domains[item]))
   return master
 
 def exportCSV(data):
@@ -275,17 +271,40 @@ def exportCSV(data):
     writer.writerows(data)
 
 def main(textfile, fastafile):
+  data = ["Range", "Match Percentage", "P Match","G Match", "Template P Count",
+          "Template G Count", "Model P Count", "Model G Count",
+          "Template P Nonmatch", "Template G Nonmatch", "Model P Nonmatch",
+          "Model G Nonmatch"]
+
   os.system('clear')
   custom_domains, alignments, template = openDomains(textfile, fastafile)
-  #online_domains = TMHMM("".join(template)).domains
+  online_domains = TMHMM("".join(template)).domains
+  total_domains = OrderedDict()
+  for key in online_domains.keys() + custom_domains.keys():
+    val_conct = ""
+    try:
+        val_conct = online_domains[key]
+    except KeyError:
+        val_conct = custom_domains[key]
+
+    total_domains[key] = val_conct
   total_data = []
-  print template
-  print alignments[0]
-  total_data.append(loopthroughdomains(custom_domains, alignments[0], alignments[0]))
-  print total_data
-  # for alignment in alignments:
-  #   total_data.append(loopthroughdomains(custom_domains, template, alignment))
-  #print total_data
+  domains_list = []
+  # print template
+  # print alignments[0]
+  # total_data.append(loopthroughdomains(custom_domains, alignments[0], alignments[0]))
+  # print total_data
+  for domain in total_domains:
+    domains_list.extend([domain]*12)
+
+  for alignment in alignments:
+    total_data.append(loopthroughdomains(total_domains, template, alignment))
+
+  data = data*len(total_domains)
+  data.insert(0,"Sequence")
+  total_data.insert(0, data)
+  domains_list.insert(0, "")
+  total_data.insert(0, domains_list)
   exportCSV(total_data)
 
 main(sys.argv[1], sys.argv[2])
