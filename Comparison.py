@@ -32,14 +32,24 @@ class CompareSequence():
 		'''
 		return (i for i,v in enumerate(list(self.template_sequence)) if v!='-').next()
 	
-	def DomainedSequences(self, alignment, Oalignment):
+	def DomainedSequences(self, alignmenta, Oalignment):
 		'''
 		Loops through domains to get the correct substrings of the sequences
 		based on the domain's logical specifications
 		ie: domain = [1,10]		 <--- 10 Char in domain
 		returns "T__ABCDL__EMST" <--- 10 Char in substring 
 		'''
-		combined_data = [alignment]
+		combined_data = []
+		total_matches = 0
+		total_length = 0
+		total_range = []
+		total_pmatch = 0
+		total_gmatch = 0
+		total_tempP = 0
+		total_tempG = 0
+		total_modelP = 0
+		total_modelG = 0
+		total_gap_matches = 0
 		for domain in self.domains:
 			self.gap_adjust = 0
 			current = self.template_sequence[self.frontadjust+self.gaps+self.domains[domain][0]-1:
@@ -48,7 +58,26 @@ class CompareSequence():
 			template, start, end = self.accountGaps(self.template_sequence, self.domains[domain], self.domains[domain], currentgaps)
 			alignment = Oalignment[start:end]
 			self.gaps += self.gap_adjust
-			combined_data.extend(self.Analyze(self.domains[domain], template.upper(), alignment.upper()))
+			data, matches, gap_matches, length = self.Analyze(self.domains[domain], template.upper(), alignment.upper())
+			combined_data.extend(data)
+			total_matches += matches
+			total_length += length
+
+			total_range.append(data[0])
+			total_pmatch += data[2]
+			total_gmatch += data[3]
+			total_tempP += data[4]
+			total_tempG += data[5]
+			total_modelP += data[6]
+			total_modelG += data[7]
+			total_gap_matches += gap_matches
+
+		percentage = round(float(total_matches)/float(total_length)*100,2)
+		print [alignmenta], 
+		combined_data = [alignmenta] + [total_range, percentage, total_pmatch, total_gmatch,
+						 total_tempP, total_tempG, total_modelP, total_modelG,
+						 total_tempP - total_pmatch, total_tempG - total_pmatch,
+						 total_modelP - total_gmatch, total_modelG - total_gmatch] + combined_data
 		return combined_data
 
 	def Analyze(self, range, template, alignment):
@@ -94,7 +123,7 @@ class CompareSequence():
 		data = [range, percentage, pmatch, gmatch, pcount, gcount,
           bottom_pcount, bottom_gcount, pcount - pmatch,
           gcount - gmatch, bottom_pcount - pmatch, bottom_gcount - gmatch]
-		return data
+		return data, match, gap_matches, len(template)
 
 	def accountGaps(self, Osequence, Odomain, domain, currentgaps):
 		'''

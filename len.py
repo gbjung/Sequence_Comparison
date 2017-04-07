@@ -91,9 +91,10 @@ def main(textfile, fastafile):
     total_domains[key] = val_conct
   total_data = []
   domains_list = []
+  domains_list.extend(["COMBINED"]*len(data))
 
   for domain in total_domains:
-    domains_list.extend([domain]*12)
+    domains_list.extend([domain]*len(data))
   compare = CompareSequence(template, alignments, total_domains)
   total_data.extend(compare.data)
 
@@ -102,7 +103,6 @@ def main(textfile, fastafile):
   total_data.insert(0, data)
   domains_list.insert(0, "")
   total_data.insert(0, domains_list)
-  print total_data
   exportCSV(total_data)
 
 main(sys.argv[1], sys.argv[2])
