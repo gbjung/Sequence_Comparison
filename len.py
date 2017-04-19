@@ -4,7 +4,6 @@ from collections import OrderedDict
 import sys
 import re
 from seleniumscript import TMHMM
-from pprint import pprint
 from Comparison import CompareSequence
 
 
@@ -23,10 +22,13 @@ def openDomains(file, fasta):
   alignments = []
   template = [] 
   sequence = "" #the template specified from the Domains.txt
+  compare = "" #the specific comparison, optional
   with open(file, 'rU') as f:
     for line in f:
       if "Sequence" in line:
         sequence = line[9:].strip()
+      if "Extract" in line:
+        compare = line[9:].strip()
       if "Domain" in line:
         domain_name = line.split(":")[0]
         domain_ranges = [x.replace("\n","").strip() for x in line.split(":")[1].split(',')]
@@ -41,16 +43,19 @@ def openDomains(file, fasta):
           domain_ranges = [int(x) for x in domain_ranges[0].split("-")]
           domain_ranges = [domain_ranges[0], domain_ranges[1]]
         od[domain_name] = domain_ranges
-
-    with open("GPCRdb_alignment.fasta", 'rU') as f:
-      read = f.readlines()
-      for line in range(len(read)):
-        if sequence in read[line]:
-          template = [read[line][1:-1],read[line+1][1:-1]]
-        elif ">" in read[line]:
+  with open("GPCRdb_alignment.fasta", 'rU') as f:
+    read = f.readlines()
+    for line in range(len(read)):
+      if sequence in read[line]:
+        template = [read[line][1:-1],read[line+1][1:-1]]
+      if compare:
+        if compare in read[line]:
+          alignments = [[read[line][1:-1],read[line+1][1:-1]]]
+      else:
+        if ">" in read[line]:
           alignments.append([read[line][1:-1],read[line+1][1:-1]])
 
-    return od, alignments, template
+  return od, alignments, template
 
 def loopthroughdomains(domains, template, model):
   '''
@@ -71,6 +76,12 @@ def exportCSV(data):
     writer = csv.writer(output)
     writer.writerows(data)
 
+def writeFile(temp,mod):
+  with open('cleanedout.fasta','wb') as output:
+    output.write(">"+temp[0]+'\n'+temp[1]+'\n')
+    output.write(">"+mod[0]+'\n'+mod[1])
+  output.close()
+
 def main(textfile, fastafile):
   data = ["Range", "Match Percentage", "P Match","G Match", "Template P Count",
           "Template G Count", "Model P Count", "Model G Count",
@@ -79,7 +90,7 @@ def main(textfile, fastafile):
 
   os.system('clear')
   custom_domains, alignments, template = openDomains(textfile, fastafile)
-  online_domains = TMHMM("".join(template)).domains
+  online_domains = {}#TMHMM("".join(template)).domains
   total_domains = OrderedDict()
   for key in online_domains.keys() + custom_domains.keys():
     val_conct = ""
@@ -103,6 +114,8 @@ def main(textfile, fastafile):
   total_data.insert(0, data)
   domains_list.insert(0, "")
   total_data.insert(0, domains_list)
+  if compare.cleanedTemp and compare.cleanedMod:
+    writeFile(compare.cleanedTemp,compare.cleanedMod)
   exportCSV(total_data)
 
 main(sys.argv[1], sys.argv[2])

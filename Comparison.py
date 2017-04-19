@@ -17,14 +17,25 @@ class CompareSequence():
 		self.gap_adjust = 0
 		self.frontadjust = self.adjustPlacement()
 		self.data = []
+		self.cleanedTemp = None
+		self.cleanedMod = None
 		self.TemplateVSAlignment()
 
 	def TemplateVSAlignment(self):
 		for alignment in self.alignments:
 			self.gaps = 0
 			self.data.append(self.DomainedSequences(alignment[0], alignment[1].replace('\n','')))
-			print "\n"
+		if len(self.alignments) == 1:
+			self.cleanedTemp, self.cleanedMod = self.RemoveRedundancy(self.alignments[0][0], self.alignments[0][1])
 
+	def RemoveRedundancy(self, alignmenta, Oalignment):
+		temp = self.template_sequence[self.adjustPlacement():]
+		align = Oalignment[self.adjustPlacement():]
+
+		for i, e in reversed(list(enumerate(temp))):
+			if temp[i] != '-' or align[i] != '-':
+				return [self.template_name,temp[:i+1]], [alignmenta,align[:i+1]]
+		return [self.template_name,temp], [alignmenta,align]
 
 	def adjustPlacement(self):
 		'''
@@ -50,6 +61,7 @@ class CompareSequence():
 		total_modelP = 0
 		total_modelG = 0
 		total_gap_matches = 0
+		combined_seq = []
 		for domain in self.domains:
 			self.gap_adjust = 0
 			current = self.template_sequence[self.frontadjust+self.gaps+self.domains[domain][0]-1:
@@ -71,9 +83,7 @@ class CompareSequence():
 			total_modelP += data[6]
 			total_modelG += data[7]
 			total_gap_matches += gap_matches
-
 		percentage = round(float(total_matches)/float(total_length)*100,2)
-		print [alignmenta], 
 		combined_data = [alignmenta] + [total_range, percentage, total_pmatch, total_gmatch,
 						 total_tempP, total_tempG, total_modelP, total_modelG,
 						 total_tempP - total_pmatch, total_tempG - total_pmatch,
@@ -88,7 +98,7 @@ class CompareSequence():
 		bottom_gcount = 0
 		pmatch = 0
 		gmatch = 0
-		gap_matches = 0 
+		gap_matches = 0
 		for char in xrange(len(template)):
 			if template[char] == alignment[char]:
 				match += 1

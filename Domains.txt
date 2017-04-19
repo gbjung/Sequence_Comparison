@@ -1,1 +1,1 @@
-Sequence: 5ht2b_humanDomain_0: 0-10Domain: 40-44	
+Sequence: adrb2_humanExtract: acm3_ratDomain_1: 39-69
