@@ -1,1 +1,1 @@
-Sequence: adrb2_humanExtract: acm3_ratDomain_1: 39-69
+Sequence: adrb2_humanExtract: acm3_ratDomain_1: 39-69Domain_2: 80-95

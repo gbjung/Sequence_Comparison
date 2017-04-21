@@ -1,0 +1,3 @@
+,COMBINED,COMBINED,TMHMM_1,TMHMM_1,TMHMM_2,TMHMM_2,TMHMM_3,TMHMM_3,TMHMM_4,TMHMM_4,TMHMM_5,TMHMM_5,TMHMM_6,TMHMM_6,TMHMM_7,TMHMM_7,Domain_1,Domain_1,Domain_2,Domain_2
+Sequence,Range,Match Percentage,Range,Match Percentage,Range,Match Percentage,Range,Match Percentage,Range,Match Percentage,Range,Match Percentage,Range,Match Percentage,Range,Match Percentage,Range,Match Percentage,Range,Match Percentage
+acm3_rat,"[[45, 67], [79, 101], [116, 138], [159, 178], [210, 232], [284, 306], [316, 335], [39, 69], [80, 95]]",17.25,"[45, 67]",11.54,"[79, 101]",23.33,"[116, 138]",39.13,"[159, 178]",35.0,"[210, 232]",17.86,"[284, 306]",34.78,"[316, 335]",0.0,"[39, 69]",3.57,"[80, 95]",31.25

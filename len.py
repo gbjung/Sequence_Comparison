@@ -71,13 +71,13 @@ def loopthroughdomains(domains, template, model):
     master.extend(["Range: {}".format(domains[item])]+gapped(template[1].strip('\n'), model[1], domains[item]))
   return master
 
-def exportCSV(data):
-  with open('output.csv', 'wb') as output:
+def exportCSV(filename, data):
+  with open(filename, 'wb') as output:
     writer = csv.writer(output)
     writer.writerows(data)
 
 def writeFile(temp,mod):
-  with open('cleanedout.fasta','wb') as output:
+  with open('extracted.fasta','wb') as output:
     output.write(">"+temp[0]+'\n'+temp[1]+'\n')
     output.write(">"+mod[0]+'\n'+mod[1])
   output.close()
@@ -87,10 +87,10 @@ def main(textfile, fastafile):
           "Template G Count", "Model P Count", "Model G Count",
           "Template P Nonmatch", "Template G Nonmatch", "Model P Nonmatch",
           "Model G Nonmatch"]
+  shortdata = data[:2]
 
-  os.system('clear')
   custom_domains, alignments, template = openDomains(textfile, fastafile)
-  online_domains = {}#TMHMM("".join(template)).domains
+  online_domains = TMHMM("".join(template)).domains
   total_domains = OrderedDict()
   for key in online_domains.keys() + custom_domains.keys():
     val_conct = ""
@@ -101,21 +101,30 @@ def main(textfile, fastafile):
 
     total_domains[key] = val_conct
   total_data = []
+  total_shortdata = []
   domains_list = []
   domains_list.extend(["COMBINED"]*len(data))
-
+  shortdomains_list = []
+  shortdomains_list.extend(["COMBINED"]*len(shortdata))
   for domain in total_domains:
     domains_list.extend([domain]*len(data))
+    shortdomains_list.extend([domain]*len(shortdata))
   compare = CompareSequence(template, alignments, total_domains)
   total_data.extend(compare.data)
-
-  data = data*len(total_domains)
+  total_shortdata.extend(compare.shortdata)
+  data = data*(len(total_domains)+1)
+  shortdata = shortdata*(len(total_domains)+1)
   data.insert(0,"Sequence")
+  shortdata.insert(0,"Sequence")
   total_data.insert(0, data)
+  total_shortdata.insert(0, shortdata)
   domains_list.insert(0, "")
+  shortdomains_list.insert(0,"")
   total_data.insert(0, domains_list)
+  total_shortdata.insert(0, shortdomains_list)
   if compare.cleanedTemp and compare.cleanedMod:
     writeFile(compare.cleanedTemp,compare.cleanedMod)
-  exportCSV(total_data)
+  exportCSV('output.csv',total_data)
+  exportCSV('shortended.csv',total_shortdata)
 
 main(sys.argv[1], sys.argv[2])
