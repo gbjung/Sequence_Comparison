@@ -50,8 +50,8 @@ class CompareSequence():
 		checks to see where the first non gap is in a template
 		'''
 		tempStart = (i for i,v in enumerate(list(self.template_sequence)) if v!='-').next()
-		alignStart = (i for i,v in enumerate(list(Oalignment)) if v!='-').next()
-		return min(tempStart,alignStart)
+		#alignStart = (i for i,v in enumerate(list(Oalignment)) if v!='-').next()
+		return tempStart
 	
 	def DomainedSequences(self, alignmenta, Oalignment):
 		'''
