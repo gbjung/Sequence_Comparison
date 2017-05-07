@@ -74,27 +74,87 @@ class CompareSequence():
 		total_gap_matches = 0
 		combined_seq = []
 		startPosition = self.adjustPlacement(Oalignment)
+		lastdomain = None
 		for domain in self.domains:
+			if lastdomain:
+				curr = self.domains[domain][0]
+				if type(curr) == list:
+					curr = curr[0]
+				if lastdomain > curr:
+					self.gaps = 0
+			else:
+				lastdomain = self.domains[domain][0]
+			print lastdomain, self.domains[domain][0], domain, self.gaps
 			self.gap_adjust = 0
-			current = self.template_sequence[startPosition+self.gaps+self.domains[domain][0]-1:
-										 	 startPosition+self.gaps+self.domains[domain][1]]
-			currentgaps = current.count('-')
-			template, start, end = self.accountGaps(startPosition, self.template_sequence, self.domains[domain], self.domains[domain], currentgaps)
-			alignment = Oalignment[start:end]
-			self.gaps += self.gap_adjust
-			data, matches, gap_matches, length, shortdata = self.Analyze(self.domains[domain], template.upper(), alignment.upper())
-			combined_data.extend(data)
-			combined_shortdata.extend(shortdata)
-			total_matches += matches
-			total_length += length
-			total_range.append(data[0])
-			total_pmatch += data[2]
-			total_gmatch += data[3]
-			total_tempP += data[4]
-			total_tempG += data[5]
-			total_modelP += data[6]
-			total_modelG += data[7]
-			total_gap_matches += gap_matches
+			if len(self.domains[domain])>2:
+				dtotal_domains = []
+				dtotal_matches = 0
+				dtotal_length = 0
+				dtotal_range = []
+				dtotal_pmatch = 0
+				dtotal_gmatch = 0
+				dtotal_tempP = 0
+				dtotal_tempG = 0
+				dtotal_modelP = 0
+				dtotal_modelG = 0
+				dtotal_gap_matches = 0
+				dshortdata = []
+				dtotaldata = []
+				for dom in self.domains[domain]:
+					current = self.template_sequence[startPosition+self.gaps+dom[0]-1:
+										 	 		 startPosition+self.gaps+dom[1]]
+					currentgaps = current.count('-')
+					template, start, end = self.accountGaps(startPosition, self.template_sequence, dom, dom, currentgaps)
+					dalignment = Oalignment[start:end]
+					self.gaps += self.gap_adjust
+					data, matches, gap_matches, length, shortdata = self.Analyze(dom, template.upper(), dalignment.upper())
+					dtotal_gap_matches += gap_matches
+					dtotal_length += length
+					dtotal_domains.append(list(set(data[0])))
+					dtotal_matches += matches
+					dtotal_pmatch += data[2]
+					dtotal_gmatch += data[3]
+					dtotal_tempP += data[4]
+					dtotal_tempG += data[5]
+					dtotal_modelP += data[6]
+					dtotal_modelG += data[7]
+				dpercentage = round(float(dtotal_matches)/float(dtotal_length)*100,2)
+				dtotaldata = [dtotal_domains, dpercentage, dtotal_pmatch, dtotal_gmatch,
+						 dtotal_tempP, dtotal_tempG, dtotal_modelP, dtotal_modelG,
+						 dtotal_tempP - dtotal_pmatch, dtotal_tempG - dtotal_gmatch,
+						 dtotal_modelP - dtotal_pmatch, dtotal_modelG - dtotal_gmatch]
+				combined_data.extend(dtotaldata)
+				combined_shortdata.extend([dtotal_domains, dpercentage])
+				total_matches += dtotal_matches
+				total_length += dtotal_length
+				total_pmatch += dtotal_pmatch
+				total_gmatch += dtotal_gmatch
+				total_tempP += dtotal_tempP
+				total_tempG += dtotal_tempG
+				total_modelP += dtotal_modelP
+				total_modelG += dtotal_modelG
+				total_gap_matches += dtotal_gap_matches
+				total_range.append(dtotal_domains)
+			else:	
+				current = self.template_sequence[startPosition+self.gaps+self.domains[domain][0]-1:
+											 	 startPosition+self.gaps+self.domains[domain][1]]
+				currentgaps = current.count('-')
+				template, start, end = self.accountGaps(startPosition, self.template_sequence, self.domains[domain], self.domains[domain], currentgaps)
+				alignment = Oalignment[start:end]
+				self.gaps += self.gap_adjust
+				data, matches, gap_matches, length, shortdata = self.Analyze(self.domains[domain], template.upper(), alignment.upper())
+				combined_data.extend(data)
+				combined_shortdata.extend(shortdata)
+				total_matches += matches
+				total_length += length
+				total_range.append(data[0])
+				total_pmatch += data[2]
+				total_gmatch += data[3]
+				total_tempP += data[4]
+				total_tempG += data[5]
+				total_modelP += data[6]
+				total_modelG += data[7]
+				total_gap_matches += gap_matches
 		percentage = round(float(total_matches)/float(total_length)*100,2)
 		combined_data = [alignmenta] + [total_range, percentage, total_pmatch, total_gmatch,
 						 total_tempP, total_tempG, total_modelP, total_modelG,
@@ -145,10 +205,12 @@ class CompareSequence():
 					bottom_pcount += 1
 				if alignment[char] == "G":
 					bottom_gcount += 1
-		percentage = round(float(match-gap_matches)/float(len(template))*100,2)
+		percentage = round(float(match-gap_matches)/float(len(template)-gap_matches)*100,2)
 		data = [range, percentage, pmatch, gmatch, pcount, gcount,
           bottom_pcount, bottom_gcount, pcount - pmatch,
           gcount - gmatch, bottom_pcount - pmatch, bottom_gcount - gmatch]
+		if range == [1, 5]:
+			print template, alignment
 		return data, match, gap_matches, len(template), data[:2]
 
 	def accountGaps(self, startPosition, Osequence, Odomain, domain, currentgaps):

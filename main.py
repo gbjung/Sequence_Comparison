@@ -3,9 +3,7 @@ import csv
 from collections import OrderedDict
 import sys
 import re
-from seleniumscript import TMHMM
 from Comparison import CompareSequence
-
 
 def openDomains(file, fasta):
   '''
@@ -20,11 +18,14 @@ def openDomains(file, fasta):
   '''
   od = OrderedDict() 
   alignments = []
-  template = [] 
+  template = []
+  online = False 
   sequence = "" #the template specified from the Domains.txt
   compare = "" #the specific comparison, optional
   with open(file, 'rU') as f:
     for line in f:
+      if "Online" in line:
+        online = True
       if "Sequence" in line:
         sequence = line[9:].strip()
       if "Extract" in line:
@@ -38,7 +39,7 @@ def openDomains(file, fasta):
               domain_ranges[drange] = [int(x) for x in domain_ranges[drange].split("-")]
               domain_ranges[drange] = [domain_ranges[drange][0], domain_ranges[drange][1]]
             else:
-              domain_ranges[drange] = int(domain_ranges[drange])
+              domain_ranges[drange] = [int(domain_ranges[drange]), int(domain_ranges[drange])]
         else:
           domain_ranges = [int(x) for x in domain_ranges[0].split("-")]
           domain_ranges = [domain_ranges[0], domain_ranges[1]]
@@ -55,7 +56,7 @@ def openDomains(file, fasta):
         if ">" in read[line]:
           alignments.append([read[line][1:-1],read[line+1][1:-1]])
 
-  return od, alignments, template
+  return od, alignments, template, online
 
 def loopthroughdomains(domains, template, model):
   '''
@@ -89,8 +90,12 @@ def main(textfile, fastafile):
           "Model G Nonmatch"]
   shortdata = data[:2]
 
-  custom_domains, alignments, template = openDomains(textfile, fastafile)
-  online_domains = TMHMM("".join(template)).domains
+  custom_domains, alignments, template, online = openDomains(textfile, fastafile)
+  if online:
+    from seleniumscript import TMHMM
+    online_domains = TMHMM("".join(template)).domains
+  else:
+    online_domains = {}
   total_domains = OrderedDict()
   for key in online_domains.keys() + custom_domains.keys():
     val_conct = ""

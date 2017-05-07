@@ -1,1 +1,1 @@
-Sequence: adrb2_humanDomain_1: 39-69Domain_2: 80-95Domain_3: 100-120
+Sequence: 5ht1b_humanDomain1: 4,5,8,9-20Domain_1: 39-69Domain_2: 80-95Domain_3: 100-120

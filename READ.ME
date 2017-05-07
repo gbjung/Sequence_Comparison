@@ -11,8 +11,21 @@ Everything else can be manipulated through Domains.txt
 Domains.txt Instructions
 _________________________
 The comparison sequence can changed by changing "Sequence:"
+You can turn on using online domains by writing in  "Online"
 A sequence - extract comparison can be made by adding in "Extract: " along with a specified sequence name. <-- Optional
 Custom domains can be added through Domains.txt as long as it falls in the range of the sequences. <-- Optional
+
+example:
+
+Online
+Sequence: 5ht1b_human
+Extract: 5ht2b_human
+Domain_0: 4,5,8,9-20
+Domain_1: 39-69
+Domain_2: 80-95
+Domain_3: 100-120
+
+The comparison will be made in respect to 5ht1b_human and will only compare with 5ht2b_human, deleting Extract will compare it with all sequences in the fasta file specified in the command line. Listing Online will use online domains along with the listed ones, and Domain_0 will compare the sequences at the points 4,5,8, and the range of 9 - 20.
 
 --------------------------
 
